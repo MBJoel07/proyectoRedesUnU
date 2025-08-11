@@ -6,89 +6,99 @@ import java.awt.*;
 
 public class interfazGUI extends JFrame {
 
-    public JTextField ipInicio;
-    public JTextField ipFin;
-    public JTextField timeout;
-    public JButton botonEscanear;
-	
-    
-    public String getIpInicio() {
-		return ipInicio.getText().trim();
-	}
+    private JTextField ipInicioField;
+    private JTextField ipFinField;
+    private JTextField tiempoEsperaField;
+    private JTable tabla;
+    private JProgressBar barraProgreso;
 
-	public void setIpInicioField(JTextField ipInicio) {
-		this.ipInicio = ipInicio;
-	}
+    public JButton botonEscanear; // <-- visible desde Main
+    public JButton botonLimpiar;  // <-- por si quieres usarlo
 
-	public String getIpFin() {
-		return ipFin.getText().trim();
-	}
-
-	public void setIpFin(JTextField ipFin) {
-		this.ipFin = ipFin;
-	}
-
-	public String getTimeout() {
-		return timeout.getText().trim();
-	}
-
-	public void setTimeout(JTextField timeout) {
-		this.timeout = timeout;
-	}
-
-	public JButton getBotonEscanear() {
-		return botonEscanear;
-	}
-
-	public void setBotonEscanear(JButton botonEscanear) {
-		this.botonEscanear = botonEscanear;
-	}
-
-	public interfazGUI() {
-    	
-        ipInicio = new JTextField();
-        ipFin = new JTextField();
-        timeout = new JTextField();
-        botonEscanear = new JButton("Iniciar escaneo");
-    	
+    public interfazGUI() {
         setTitle("Escáner de Red");
-        setSize(800, 500);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null); // Centrar ventana
+        setSize(700, 400);
+        setLocationRelativeTo(null);
 
-        setLayout(new BorderLayout());
+        setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Panel superior con campos de entrada y botones
-        JPanel inputPanel = new JPanel(new GridLayout(4, 2, 10, 10));
-        inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        // ====== FILA 1: IP de inicio ======
+        gbc.gridx = 0; gbc.gridy = 0;
+        add(new JLabel("IP inicio:"), gbc);
 
-        inputPanel.add(new JLabel("IP de inicio:"));
-        inputPanel.add(ipInicio);
+        gbc.gridx = 1;
+        ipInicioField = new JTextField(15);
+        add(ipInicioField, gbc);
 
-        inputPanel.add(new JLabel("IP de fin:"));
-        inputPanel.add(ipFin);
+        // ====== FILA 2: IP de fin ======
+        gbc.gridx = 0; gbc.gridy = 1;
+        add(new JLabel("IP fin:"), gbc);
 
-        inputPanel.add(new JLabel("Tiempo de espera (ms):"));
-        inputPanel.add(timeout);
+        gbc.gridx = 1;
+        ipFinField = new JTextField(15);
+        add(ipFinField, gbc);
 
-        inputPanel.add(new JButton("Iniciar Escaneo"));
-        inputPanel.add(botonEscanear);
+        // ====== FILA 3: Tiempo de espera ======
+        gbc.gridx = 0; gbc.gridy = 2;
+        add(new JLabel("Tiempo de espera (ms):"), gbc);
 
-        
-        inputPanel.add(new JButton("Limpiar"));
+        gbc.gridx = 1;
+        tiempoEsperaField = new JTextField(15);
+        add(tiempoEsperaField, gbc);
 
-        add(inputPanel, BorderLayout.NORTH);
+        // ====== FILA 4: Botones ======
+        gbc.gridx = 0; gbc.gridy = 3;
+        botonEscanear = new JButton("Iniciar Escaneo");
+        add(botonEscanear, gbc);
 
-        // 🔹 Tabla de resultados en el centro
-        String[] columnas = {"Dirección IP", "Nombre del equipo", "Conectado", "Tiempo de respuesta (ms)"};
-        JTable table = new JTable(new DefaultTableModel(columnas, 0));
-        JScrollPane scrollPane = new JScrollPane(table);
+        gbc.gridx = 1;
+        botonLimpiar = new JButton("Limpiar");
+        add(botonLimpiar, gbc);
 
-        add(scrollPane, BorderLayout.CENTER);
+        // ====== FILA 5: Tabla ======
+        gbc.gridx = 0; gbc.gridy = 4;
+        gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.weightx = 1; gbc.weighty = 1;
 
-        // 🔹 Barra de progreso abajo
-        JProgressBar progressBar = new JProgressBar();
-        progressBar.setStringPainted(true); // Mostrar texto
-        add(progressBar, BorderLayout.SOUTH);
+        tabla = new JTable(new DefaultTableModel(
+                new Object[]{"IP", "Nombre", "Estado", "Tiempo respuesta"}, 0
+        ));
+        JScrollPane scroll = new JScrollPane(tabla);
+        add(scroll, gbc);
+
+        // ====== FILA 6: Barra de progreso ======
+        gbc.gridy = 5;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weighty = 0;
+        barraProgreso = new JProgressBar();
+        add(barraProgreso, gbc);
+
+        setVisible(true);
+    }
+
+    // Getters para Main
+    public String getIpInicio() {
+        return ipInicioField.getText().trim();
+    }
+
+    public String getIpFin() {
+        return ipFinField.getText().trim();
+    }
+
+    public String getTimeout() {
+        return tiempoEsperaField.getText().trim();
+    }
+
+    public JTable getTabla() {
+        return tabla;
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(interfazGUI::new);
     }
 }
