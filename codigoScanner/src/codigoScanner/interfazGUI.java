@@ -3,6 +3,9 @@ package codigoScanner;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.InetAddress;
 
 public class interfazGUI extends JFrame {
 
@@ -12,8 +15,8 @@ public class interfazGUI extends JFrame {
     private JTable tabla;
     private JProgressBar barraProgreso;
 
-    public JButton botonEscanear; // <-- visible desde Main
-    public JButton botonLimpiar;  // <-- por si quieres usarlo
+    public JButton botonEscanear;
+    public JButton botonLimpiar;
 
     public interfazGUI() {
         setTitle("Escáner de Red");
@@ -66,7 +69,7 @@ public class interfazGUI extends JFrame {
         gbc.weightx = 1; gbc.weighty = 1;
 
         tabla = new JTable(new DefaultTableModel(
-                new Object[]{"IP", "Nombre", "Estado", "Tiempo respuesta"}, 0
+                new Object[]{"IP", "Nombre", "Estado", "Tiempo respuesta (ms)"}, 0
         ));
         JScrollPane scroll = new JScrollPane(tabla);
         add(scroll, gbc);
@@ -78,10 +81,105 @@ public class interfazGUI extends JFrame {
         barraProgreso = new JProgressBar();
         add(barraProgreso, gbc);
 
+        // Acción del botón Escanear
+        botonEscanear.addActionListener(e -> iniciarEscaneo());
+
+        // Acción del botón Limpiar
+        botonLimpiar.addActionListener(e -> {
+            ((DefaultTableModel) tabla.getModel()).setRowCount(0);
+            barraProgreso.setValue(0);
+        });
+
         setVisible(true);
     }
 
-    // Getters para Main
+    private void iniciarEscaneo() {
+        String ipInicio = getIpInicio();
+        String ipFin = getIpFin();
+        int timeout;
+
+        try {
+            timeout = Integer.parseInt(getTimeout());
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Tiempo de espera inválido.");
+            return;
+        }
+
+        String[] partesInicio = ipInicio.split("\\.");
+        String[] partesFin = ipFin.split("\\.");
+
+        if (partesInicio.length != 4 || partesFin.length != 4) {
+            JOptionPane.showMessageDialog(this, "Formato de IP inválido.");
+            return;
+        }
+
+        int inicio = Integer.parseInt(partesInicio[3]);
+        int fin = Integer.parseInt(partesFin[3]);
+
+        String baseIP = partesInicio[0] + "." + partesInicio[1] + "." + partesInicio[2] + ".";
+
+        barraProgreso.setMaximum(fin - inicio + 1);
+        barraProgreso.setValue(0);
+
+        DefaultTableModel modelo = (DefaultTableModel) tabla.getModel();
+        modelo.setRowCount(0);
+
+        new Thread(() -> {
+            for (int i = inicio; i <= fin; i++) {
+                String ipActual = baseIP + i;
+                String estado = "Desconocido";
+                String nombreHost = "";
+                long tiempoRespuesta = -1;
+
+                try {
+                    long inicioTiempo = System.currentTimeMillis();
+                    ProcessBuilder pb = new ProcessBuilder("ping", "-n", "1", "-w", String.valueOf(timeout), ipActual);
+                    Process p = pb.start();
+
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                    String linea;
+                    boolean respuestaOK = false;
+
+                    while ((linea = reader.readLine()) != null) {
+                        if (linea.contains("tiempo") || linea.contains("time")) {
+                            respuestaOK = true;
+                            if (linea.contains("ms")) {
+                                String[] partes = linea.split("=");
+                                String tiempoStr = partes[partes.length - 1].replaceAll("[^0-9]", "");
+                                tiempoRespuesta = Long.parseLong(tiempoStr);
+                            }
+                        }
+                    }
+
+                    p.waitFor();
+                    long finTiempo = System.currentTimeMillis();
+
+                    if (tiempoRespuesta == -1 && respuestaOK) {
+                        tiempoRespuesta = finTiempo - inicioTiempo;
+                    }
+
+                    if (respuestaOK) {
+                        estado = "Activo";
+                        nombreHost = InetAddress.getByName(ipActual).getHostName();
+                    } else {
+                        estado = "Inactivo";
+                        nombreHost = "-";
+                    }
+
+                } catch (Exception ex) {
+                    estado = "Error";
+                    nombreHost = "-";
+                }
+
+                modelo.addRow(new Object[]{ipActual, nombreHost, estado, tiempoRespuesta == -1 ? "-" : tiempoRespuesta + " ms"});
+
+                int progreso = i - inicio + 1;
+                barraProgreso.setValue(progreso);
+            }
+        }).start();
+    }
+
+    // Getters
     public String getIpInicio() {
         return ipInicioField.getText().trim();
     }
