@@ -19,6 +19,6 @@ Entrega n°2:
 
 Avance: Ya pude terminar parte esencial del código para su correcto funcionamiento, tanto visual como lógico. Pero aún no se puede con IPs reales, solo simulación dentro del programa de Java.
 
-Problemas: No hubo ningún problema significativo, solo errores de proceso de programación, que después de un rato se terminan solucionando.
+Problemas: No hubo ningún problema significativo, solo errores de proceso de programación, que después de un rato se terminan solucionando. Pero existe un problema, aún desconozco como borrar archivos o carpetas del repositorio.
 
-Se espera poder terminar el código dentro del plazo siguiente e incluir un manual para el programa y cambiar el formato de la documentación junto con el manual a formato PDF.
+Se espera poder terminar el código dentro del plazo siguiente e incluir un manual para el programa y cambiar el formato de la documentación junto con el manual a formato PDF. También que estén los archivos ordenados de forma lógica, ya que hay carpetas o archivos que solo yo entendería.
