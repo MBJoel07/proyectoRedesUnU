@@ -1,3 +1,5 @@
+Escaner de IPs: El programa sirve esencialmente para analizar las IPs dentro de un rango determinado por el usuario.
+
 Entrega n°1:
 Código de java: Principalmente me centré en crear las clases que voy a utilizar para el funcionamiento tanto visual como lógico. Por ahora no hice mucho código simplemente por el tiempo, pero ya tengo la base fundamental
 
@@ -12,3 +14,11 @@ Avances: Logré avanzar bastante solamente en la parte visual, recien voy empeza
 Problemas: Al intentar borrar una carpeta de más sin querer borré el proyecto y tuve bastantes errores en cuanto a la ubicación de los archivos. Pero los códigos de cada clase los pude recuperar y los guardé de forma separada en una carpeta llamada "proyectoScannerPrinc".
 
 ---------------------------------------------------------------------------------
+
+Entrega n°2:
+
+Avance: Ya pude terminar parte esencial del código para su correcto funcionamiento, tanto visual como lógico. Pero aún no se puede con IPs reales, solo simulación dentro del programa de Java.
+
+Problemas: No hubo ningún problema significativo, solo errores de proceso de programación, que después de un rato se terminan solucionando.
+
+Se espera poder terminar el código dentro del plazo siguiente e incluir un manual para el programa y cambiar el formato de la documentación junto con el manual a formato PDF.
