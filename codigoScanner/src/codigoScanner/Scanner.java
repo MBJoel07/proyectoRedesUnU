@@ -1,5 +1,7 @@
 package codigoScanner;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,39 +15,75 @@ public class Scanner {
 
     public boolean ipValida(String ip) {
         String ipPattern =
-                "^((25[0-5]|2[0-4]\\d|[01]?\\d\\d?)\\.){3}(25[0-5]|2[0-4]\\d|[01]?\\d\\d?)$";
+                "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}" +
+                "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$";
         return ip.matches(ipPattern);
     }
 
+    private long ipToLong(String ip) {
+        String[] parts = ip.split("\\.");
+        long result = 0;
+        for (String part : parts) {
+            result = result * 256 + Integer.parseInt(part);
+        }
+        return result;
+    }
+
+    private String longToIp(long ip) {
+        return String.format("%d.%d.%d.%d",
+                (ip >> 24) & 0xFF,
+                (ip >> 16) & 0xFF,
+                (ip >> 8) & 0xFF,
+                ip & 0xFF);
+    }
+
     public List<InfoDeHost> escanear(String ipInicio, String ipFin) {
-        List<InfoDeHost> lista = new ArrayList<>();
+        List<InfoDeHost> resultados = new ArrayList<>();
 
-        try {
-            String[] iniPartes = ipInicio.split("\\.");
-            String[] finPartes = ipFin.split("\\.");
+        long startIP = ipToLong(ipInicio);
+        long endIP = ipToLong(ipFin);
 
-            int inicio = Integer.parseInt(iniPartes[3]);
-            int fin = Integer.parseInt(finPartes[3]);
-            String base = iniPartes[0] + "." + iniPartes[1] + "." + iniPartes[2] + ".";
+        for (long currentIP = startIP; currentIP <= endIP; currentIP++) {
+            String ip = longToIp(currentIP);
 
-            for (int i = inicio; i <= fin; i++) {
-                String ip = base + i;
-                long t1 = System.currentTimeMillis();
-                boolean ok = InetAddress.getByName(ip).isReachable(timeout);
-                long t2 = System.currentTimeMillis();
+            try {
+                // Ejecutar ping en CMD
+                ProcessBuilder pb = new ProcessBuilder("cmd.exe", "/c",
+                        "ping -n 1 -w " + timeout + " " + ip);
+                Process process = pb.start();
 
-                lista.add(new InfoDeHost(
-                        ip,
-                        "Host-" + i,
-                        ok,
-                        t2 - t1
-                ));
+                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                String line;
+                boolean conectado = false;
+                long tiempoRespuesta = -1;
+
+                while ((line = reader.readLine()) != null) {
+                    if (line.contains("Respuesta desde") || line.contains("Reply from")) {
+                        conectado = true;
+                        // Extraer tiempo de respuesta (en ms)
+                        String[] partes = line.split(" ");
+                        for (String parte : partes) {
+                            if (parte.startsWith("tiempo=") || parte.startsWith("time=")) {
+                                tiempoRespuesta = Long.parseLong(parte.replaceAll("\\D+", ""));
+                            }
+                        }
+                    }
+                }
+
+                String nombreEquipo = "Desconocido";
+                if (conectado) {
+                    try {
+                        nombreEquipo = InetAddress.getByName(ip).getHostName();
+                    } catch (Exception ignored) {}
+                }
+
+                resultados.add(new InfoDeHost(ip, nombreEquipo, conectado, tiempoRespuesta));
+
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
 
-        return lista;
+        return resultados;
     }
 }
-
