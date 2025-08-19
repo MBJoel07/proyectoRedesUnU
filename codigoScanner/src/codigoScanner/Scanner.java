@@ -14,11 +14,24 @@ public class Scanner {
     }
 
     // Verifica si la IP escrita tiene un formato válido
+ // Verifica si la IP escrita tiene un formato válido
     public boolean ipValida(String ip) {
-        String ipPattern =
-                "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}" +
-                "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$";
-        return ip.matches(ipPattern);
+        if (ip == null || ip.isEmpty()) return false;
+
+        String[] partes = ip.split("\\.");
+        if (partes.length != 4) return false;
+
+        try {
+            for (String parte : partes) {
+                int valor = Integer.parseInt(parte);
+                if (valor < 0 || valor > 255) {
+                    return false;
+                }
+            }
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 
     // Convierte IP en formato "x.x.x.x" a número largo
